@@ -21,16 +21,22 @@ Boolean. Whether or not a touch UI browser is being used.
 Boolean. Whether or not the browser is running under Android. This is used to determine the range of accelerometer values generated.
 **/
 var Interface = {
-  extend : function(destination, source) {
-    for (var property in source) {
-  		var keys = property.split(".");
+  extend : function(destination, source1, source2) {
+    // loop through each source and copy it into the destination. last source wins!
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i];
       
-  		if(source[property] instanceof Array && source[property].length < 100) { // don't copy large array buffers
-  	    destination[property] = source[property].slice(0);
-      } else {
-        destination[property] = source[property];
+      for (var property in source) {
+    		var keys = property.split(".");
+        
+    		if(source[property] instanceof Array && source[property].length < 100) { // don't copy large array buffers
+    	    destination[property] = source[property].slice(0);
+        } else {
+          destination[property] = source[property];
+        }
       }
     }
+
     return destination;
   },
   
@@ -3385,12 +3391,21 @@ Interface.Orientation = function() {
 Interface.Orientation.prototype = Interface.Widget;
 
 Interface.Range = function() {
-  Interface.extend(this, {
-    type:"Range",
+
+  Interface.extend(this, Interface.Range.prototype, {
     serializeMe : ["handleSize"],    
     handleSize: 20,
     values:[0,1],
-    _values:[0,1],
+    _values:[0,1]
+  })
+  .init( arguments[0] );
+}
+// Inherit from Widget, then add the Range class methods to the prototype. 
+// This allows us to call the super from an overridden method in a child class, e.g. :
+// 
+// Interface.Range.draw.apply(this, arguments)
+Interface.Range.prototype = Interface.extend({}, Interface.Widget, {
+    type:"Range",    
     draw : function() {
       var x = this._x(),
           y = this._y(),
@@ -3400,20 +3415,25 @@ Interface.Range = function() {
       this.ctx.fillStyle = this._background();
       this.ctx.clearRect(x, y, width, height);    
         
-  		var rightHandlePos = x + (this._values[1] * width) - this.handleSize;
-  		var leftHandlePos  = x + this._values[0]  * width;
+      var rightHandlePos = x + (this._values[1] * width) - this.handleSize;
+      var leftHandlePos  = x + this._values[0]  * width;
 
-	    this.ctx.fillStyle = this._background();
+      this.ctx.fillStyle = this._background();
       this.ctx.fillRect(x, y, width, height);
         
-	    this.ctx.fillStyle = this._fill();
+      this.ctx.fillStyle = this._fill();
       this.ctx.fillRect(leftHandlePos, y, rightHandlePos - leftHandlePos, height);
 
-	    this.ctx.fillStyle = this._stroke();
-  		this.ctx.fillRect(leftHandlePos, y, this.handleSize, height);
+      if (this.handleColor) {
+        this.ctx.fillStyle = this.handleColor;
+      }
+      else {
+        this.ctx.fillStyle = this._stroke();
+      }
+      this.ctx.fillRect(leftHandlePos, y, this.handleSize, height);
 
-	    //this.ctx.fillStyle = "rgba(0,255,0,.25)";
-  		this.ctx.fillRect(rightHandlePos, y, this.handleSize, height);
+      //this.ctx.fillStyle = "rgba(0,255,0,.25)";
+      this.ctx.fillRect(rightHandlePos, y, this.handleSize, height);
       
       this.ctx.strokeStyle = this._stroke();
       this.ctx.strokeRect(x, y, width, height);    
@@ -3456,10 +3476,7 @@ Interface.Range = function() {
     touchstart : function(e, hit) { if(hit) this.changeValue( e.x - this._x(), e.y - this._y() ); },
     touchmove  : function(e, hit) { if(hit) this.changeValue( e.x - this._x(), e.y - this._y() ); },
     touchend   : function(e, hit) { if(hit) this.changeValue( e.x - this._x(), e.y - this._y() ); },  
-  })
-  .init( arguments[0] );
-}
-Interface.Range.prototype = Interface.Widget;
+  });
 
 Interface.defineChildProperties = function(widget, properties) {
   for(var j = 0; j < properties.length; j++) {
