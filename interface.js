@@ -3390,6 +3390,14 @@ Interface.Orientation = function() {
 };
 Interface.Orientation.prototype = Interface.Widget;
 
+
+/**###Interface.Range.handleColor : property
+Customize the color from the default.
+**/
+
+/**###Interface.Range.rangeColor : property
+Customize the color from the default.
+**/
 Interface.Range = function() {
 
   Interface.extend(this, Interface.Range.prototype, {
@@ -3421,7 +3429,12 @@ Interface.Range.prototype = Interface.extend({}, Interface.Widget, {
       this.ctx.fillStyle = this._background();
       this.ctx.fillRect(x, y, width, height);
         
-      this.ctx.fillStyle = this._fill();
+      if (this.rangeColor) {
+        this.ctx.fillStyle = this.rangeColor;
+      }
+      else {
+        this.ctx.fillStyle = this._fill();
+      }
       this.ctx.fillRect(leftHandlePos, y, rightHandlePos - leftHandlePos, height);
 
       if (this.handleColor) {
