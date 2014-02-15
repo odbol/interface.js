@@ -1487,6 +1487,11 @@ Interface.Piano = function() {
       this.sendTargetMessage()
     },
 
+    _fill : function () {
+      // keys should always be white! let's keep with tradition here.
+      return 'white';
+    },
+
     _init : function() {
       var x = this._x(),
           y = this._y(),
