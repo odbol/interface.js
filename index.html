@@ -492,16 +492,29 @@ var rangeLabel = new Interface.Label({
   value:0
 });     
 var range = new Interface.Range({
-  bounds:[.1,.35,.8,.3],
-  min:-1, max:1,
-  crossfaderWidth:30,
-  onvaluechange : function(min, max) { 
-    rangeLabel.setValue('min : ' + min + ', max : ' + max);
-  }
-});
+    bounds:[.1,.35,.8,.3],
+    min:-1, max:1,
+    crossfaderWidth:30,
+    onvaluechange : function(min, max) { 
+      rangeLabel.setValue('min : ' + min + ', max : ' + max);
+    }
+  })
+ colorfulRange = new Interface.Range({
+    bounds:[.1,.35,.8,.3],
+    min:-1, max:1,
+    crossfaderWidth:30,
+    
+    // change colors of the handles and connecting background
+    rangeColor: '#5B9AD3',
+    handleColor: '#69b6fa',
+
+    onvaluechange : function(min, max) { 
+      rangeLabel.setValue('min : ' + min + ', max : ' + max);
+    }
+  });
 
 a.background = 'black';
-a.add(rangeLabel, range);
+a.add(rangeLabel, range, colorfulRange);
 
         </code></pre>
       </div>
@@ -510,21 +523,34 @@ a.add(rangeLabel, range);
       <script>
       var a = new Interface.Panel({  background:"#000", container:$("#rangePanel") }); 
       var rangeLabel = new Interface.Label({ 
-        bounds:[0, .2, 1, .2],
+        bounds:[0, .1, 1, .2],
         hAlign:'center',
         value:'min : -1, max : 1',
       });     
       var range = new Interface.Range({
-        bounds:[.1,.35,.8,.3],
-        min:-1, max:1,
-        crossfaderWidth:30,
-        onvaluechange : function(min, max) { 
-          rangeLabel.setValue('min : ' + min + ', max : ' + max);
-        }
-      });
+          bounds:[.1,.2,.8,.3],
+          min:-1, max:1,
+          crossfaderWidth:30,
+          onvaluechange : function(min, max) { 
+            rangeLabel.setValue('min : ' + min + ', max : ' + max);
+          }
+        }),
+         colorfulRange = new Interface.Range({
+          bounds:[.1,.6,.8,.3],
+          min:-1, max:1,
+          crossfaderWidth:30,
+          
+          // change colors of the handles and connecting background
+          rangeColor: '#5B9AD3',
+          handleColor: '#69b6fa',
+
+          onvaluechange : function(min, max) { 
+            rangeLabel.setValue('min : ' + min + ', max : ' + max);
+          }
+        });
 
       a.background = 'black';
-      a.add(rangeLabel, range);
+      a.add(rangeLabel, range, colorfulRange);
       </script>
     </li>
     <li>
