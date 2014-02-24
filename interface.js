@@ -3403,13 +3403,13 @@ Customize the color from the default.
 /**###Interface.Range.rangeColor : property
 Customize the color from the default.
 **/
-Interface.Range = function() {
+Interface.Range = function(opts) {
 
   Interface.extend(this, Interface.Range.prototype, {
     serializeMe : ["handleSize"],    
     handleSize: 20,
-    values:[0,1],
-    _values:[0,1]
+    values: opts.values || [0,1],
+    _values: opts.values || [0,1]
   })
   .init( arguments[0] );
 }
@@ -3466,7 +3466,7 @@ Interface.Range.prototype = Interface.extend({}, Interface.Widget, {
           value = 1;
         }
 
-        var range = this.max - this.min
+        var range = this.max - this.min;
       	if(Math.abs( value - this._values[0]) < Math.abs( value - this._values[1])) {
           this._values[0] = value;
       		this.values[0] = this.min + range * value;
