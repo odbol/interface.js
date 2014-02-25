@@ -1436,6 +1436,9 @@ panel.add(a);
 The event handler fired whenever a piano update is received. Used to fire the the event handler for when a button update is recieved.
 **/
 
+/**###Interface.Piano.onValueChangeEnd : method
+The event handler fired after the last piano update. (basically on mouseup or touchend).
+**/
 
 /**###Interface.Piano.endoctave : property
 Number. A number corresponding to the ending octave of the last note in the desired range.
@@ -1482,9 +1485,22 @@ Interface.Piano = function() {
     endoctave : 5,
     target : null,
     noteLabels : false,
+  })
+  .init( arguments[0] );
+};
+// Inherit from Widget, then add the Piano class methods to the prototype. 
+// This allows us to call the super from an overridden method in a child class, e.g. :
+// 
+// Interface.Piano.draw.apply(this, arguments)
+Interface.Piano.prototype = Interface.extend({}, Interface.Widget,
+  {    
     onvaluechange : function() {
       this.values = [this.frequency,this.value]
       this.sendTargetMessage()
+    },
+
+    onValueChangeEnd : function () {
+
     },
 
     _fill : function () {
@@ -1847,6 +1863,8 @@ background: this._background(),
     mouseup   : function(e) {
       if(this.mode === 'momentary')
         this.changeValue();// e.x - this.x, e.y - this.y ); 
+
+      this.onValueChangeEnd();
     },
     
     touchstart : function(e, hit) {
@@ -1879,11 +1897,10 @@ background: this._background(),
       this.isTouchOver = false;
       if(this.mode === 'momentary')
         this.changeValue();// e.x - this.x, e.y - this.y ); 
+
+      this.onValueChangeEnd();
     },
-  })
-  .init( arguments[0] );
-};
-Interface.Piano.prototype = Interface.Widget;
+  });
 
 
 
