@@ -1,3 +1,37 @@
+/*** Polyfill for requestAnimationFrame ***/
+// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+// http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
+
+// requestAnimationFrame polyfill by Erik Möller. fixes from Paul Irish and Tino Zijdel
+
+// MIT license
+
+(function() {
+    var lastTime = 0;
+    var vendors = ['ms', 'moz', 'webkit', 'o'];
+    for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+        window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+        window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] 
+                                   || window[vendors[x]+'CancelRequestAnimationFrame'];
+    }
+ 
+    if (!window.requestAnimationFrame)
+        window.requestAnimationFrame = function(callback, element) {
+            var currTime = new Date().getTime();
+            var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+            var id = window.setTimeout(function() { callback(currTime + timeToCall); }, 
+              timeToCall);
+            lastTime = currTime + timeToCall;
+            return id;
+        };
+ 
+    if (!window.cancelAnimationFrame)
+        window.cancelAnimationFrame = function(id) {
+            clearTimeout(id);
+        };
+}());
+
+
 /**#Interface
 A singleton object holding all widget constructors and a couple of other methods / properties. It is automatically created as soon as interface.js is loaded.
 **/
@@ -395,7 +429,11 @@ Interface.Panel = function() {
   
   this.init();
 
-  this.timer = setInterval( function() { self.draw(); }, Math.round(1000 / this.fps) );
+  var onFrame = function() { 
+        self.draw();
+        self.timer = requestAnimationFrame(onFrame);
+      };
+  onFrame();
 
   var childBackground ='#000',
       childFill = '#666',
@@ -2227,11 +2265,16 @@ Interface.XY = function() {
     remove: function() { this.stopAnimation(); Interface.widgets.splice( Interface.widgets.indexOf( this ), 1 ); },
     add : function() { if(this.usePhysics) this.startAnimation(); },
     startAnimation : function() { 
+      var onFrame = function() { 
+          self.refresh();
+          self.timer = requestAnimationFrame(onFrame);
+        };
+
       if(this.timer === null) { 
-        this.timer = setInterval( function() { self.refresh(); }, (1 / this.fps) * 1000); 
+        onFrame(); 
       } 
     },
-    stopAnimation : function() { clearInterval(this.timer); this.timer = null; },
+    stopAnimation : function() { cancelAnimationFrame(this.timer); this.timer = null; },
     
     animate : function() {
       var x       = this._x(),
