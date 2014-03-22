@@ -262,6 +262,13 @@ Interface.Panel = function() {
     
     touchEvent : function(event) {
       if(self.active) {
+        
+        // Fix for jQuery, since it doesn't copy over changedTouches property. 
+        // ( see http://stackoverflow.com/questions/3183872/does-jquery-preserve-touch-events-properties )
+        if (event.originalEvent) {
+          event = event.originalEvent;
+        }
+
         for (var j = 0; j < event.changedTouches.length; j++){
           var touch = event.changedTouches.item(j);		
         
