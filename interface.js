@@ -3505,7 +3505,14 @@ Interface.Range = function(opts) {
 // 
 // Interface.Range.draw.apply(this, arguments)
 Interface.Range.prototype = Interface.extend({}, Interface.Widget, {
-    type:"Range",    
+    type:"Range",
+
+    init : function () {
+        Interface.Widget.init.apply(this, arguments);
+
+        this.clampThreshold = this.clampThreshold || 0;
+    },
+
     draw : function() {
       var x = this._x(),
           y = this._y(),
@@ -3515,8 +3522,8 @@ Interface.Range.prototype = Interface.extend({}, Interface.Widget, {
       this.ctx.fillStyle = this._background();
       this.ctx.clearRect(x, y, width, height);    
         
-      var rightHandlePos = x + (this._values[1] * width) - this.handleSize;
-      var leftHandlePos  = x + this._values[0]  * width;
+      var rightHandlePos = x + (this._values[1] * (width - this.handleSize));
+      var leftHandlePos  = x + this._values[0]  * (width - this.handleSize);
 
       this.ctx.fillStyle = this._background();
       this.ctx.fillRect(x, y, width, height);
@@ -3535,31 +3542,44 @@ Interface.Range.prototype = Interface.extend({}, Interface.Widget, {
       else {
         this.ctx.fillStyle = this._stroke();
       }
-      this.ctx.fillRect(leftHandlePos, y, this.handleSize, height);
+
+      if (!this.hasOneSlider) {
+        this.ctx.fillRect(leftHandlePos, y, this.handleSize, height);
+      }
 
       //this.ctx.fillStyle = "rgba(0,255,0,.25)";
       this.ctx.fillRect(rightHandlePos, y, this.handleSize, height);
+
       
       this.ctx.strokeStyle = this._stroke();
       this.ctx.strokeRect(x, y, width, height);    
     },
-    changeValue : function( xOffset, yOffset ) {
-      if(this.hasFocus || !this.requiresFocus) {
-        var value = this.isVertical ? 1 - (yOffset / this._height()) : xOffset / this._width();
-        
-        if(value < 0) {
+
+    clampValue : function (value) {
+        if(value < 0 + this.clampThreshold) {
           value = 0;
-        }else if(value > 1) {
+        }else if(value > 1 - this.clampThreshold) {
           value = 1;
         }
 
+        return value;
+    },
+
+    changeValue : function( xOffset, yOffset ) {
+      if(this.hasFocus || !this.requiresFocus) {
+        var value = this.isVertical ? 1 - (yOffset / this._height()) : xOffset / this._width();
+console.log("value: " + value);        
+        value = this.clampValue(value);
+
         var range = this.max - this.min;
-      	if(Math.abs( value - this._values[0]) < Math.abs( value - this._values[1])) {
+      	if(!this.hasOneSlider && (Math.abs( value - this._values[0]) < Math.abs( value - this._values[1]))) {
           this._values[0] = value;
       		this.values[0] = this.min + range * value;
       	}else{
           this._values[1] = value;
       		this.values[1] = this.min + range * value;
+
+          this.value = value;
       	}
         
         this.refresh();
@@ -3572,6 +3592,15 @@ Interface.Range.prototype = Interface.extend({}, Interface.Widget, {
           this.sendTargetMessage();         
         }
       }     
+    },
+
+    // mock Slider interface, for when using hasOneSlider = true
+    setValue : function (v) {
+      v = this.clampValue(v);
+      this.values[1] = v;
+      this._values[1] = v;
+
+      return Interface.Widget.setValue.apply(this, arguments);
     },
     
     mousedown : function(e, hit) { if(hit && Interface.mouseDown) this.changeValue( e.x - this._x(), e.y - this._y() ); },
