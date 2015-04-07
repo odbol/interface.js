@@ -413,6 +413,30 @@ Interface.Panel = function() {
       this.ctx.clearRect( 0,0,this.width,this.height );
       this.children.length = 0;
     },
+
+    destroy : function () {
+      this.clear();
+
+      if(Interface.useTouch) {
+        $(this.container).off( 'touchstart', this.touchEvent );
+        $(this.container).off( 'touchmove',  this.touchEvent );
+        $(this.container).off( 'touchend',   this.touchEvent );
+      }else{
+        $(this.container).off( 'mousedown', this.mouseEvent );
+        $(this.container).off( 'mousemove', this.mouseEvent );
+        $(this.container).off( 'mouseup',   this.mouseEvent );                
+      }
+
+      for (var i = 0; i < Interface.panels.length; i++) {
+        if (Interface.panels[i] === this) {
+          Interface.panels = Interface.panels.splice(i, 1);
+          break;
+        }
+      }
+
+      $(this.canvas).remove();
+    },
+
     remove: function(widget) {
       this.ctx.clearRect( widget._x(), widget._y(), widget._width(), widget._height() );
       
@@ -3568,7 +3592,7 @@ Interface.Range.prototype = Interface.extend({}, Interface.Widget, {
     changeValue : function( xOffset, yOffset ) {
       if(this.hasFocus || !this.requiresFocus) {
         var value = this.isVertical ? 1 - (yOffset / this._height()) : xOffset / this._width();
-console.log("value: " + value);        
+//console.log("value: " + value);        
         value = this.clampValue(value);
 
         var range = this.max - this.min;
